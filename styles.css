@@ -1,0 +1,96 @@
+body {
+    background: url("https://static.pexels.com/photos/6663/desk-white-black-header.jpg") no-repeat center center fixed;
+    background-size: cover; 
+    font-family: Arial, sans-serif;
+}
+
+.pomodoro {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;  
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+p {
+    text-align: center;
+    margin: 5px 0;
+}
+
+.row {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+}
+
+.col-md-6 {
+    width: 45%;
+}
+
+.counter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn {
+    background-color: #333333;
+    color: #CCCCCC;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#workTime, #restTime, #rounds {
+    width: 40px;
+    text-align: center;
+    font-size: 18px;
+    margin: 0 10px;
+}
+
+#modeToggle {
+    width: 100px;
+}
+
+.flip-clock-wrapper {
+    max-width: 460px;
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+}
+
+#stats {
+    background-color: #333333;
+    width: 220px;
+    height: 70px;  
+    border-radius: 10px;
+    color: #CCCCCC;
+    font-size: 45px;
+    text-align: center;
+    line-height: 70px;
+    margin: 20px auto;
+}
+
+#btns {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#stop {
+    margin: 0 10px;
+}
+
+.btn-lg {
+    font-size: 18px;
+    padding: 10px 20px;
+}
