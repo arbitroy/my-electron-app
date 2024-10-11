@@ -1,48 +1,42 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
+const { Howl } = require('howler');
 
 let mainWindow;
-let tray;
-let isTimerRunning = false;
+let sounds = {};
+
 
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 800,
+        icon: path.join(__dirname, './images/icon.png') ,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true,
+            contextIsolation: false
         }
     });
 
     mainWindow.loadFile('index.html');
+
+    mainWindow.on('close', (event) => {
+        if (!app.isQuitting) {
+            event.preventDefault();
+            mainWindow.hide();
+        }
+        return false;
+    });
 }
 
-function createTray() {
-    tray = new Tray(path.join(__dirname, 'icon.png')); // You need to add an icon file
-    updateTrayMenu();
-}
-
-function updateTrayMenu() {
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: isTimerRunning ? 'Stop Timer' : 'Start Timer',
-            click: () => {
-                isTimerRunning = !isTimerRunning;
-                mainWindow.webContents.send('toggle-timer', isTimerRunning);
-                updateTrayMenu();
-            }
-        },
-        { type: 'separator' },
-        { label: 'Show App', click: () => mainWindow.show() },
-        { label: 'Quit', click: () => app.quit() }
-    ]);
-    tray.setToolTip('Tabata Timer');
-    tray.setContextMenu(contextMenu);
-}
 
 app.whenReady().then(() => {
     createWindow();
-    createTray();
+    sounds = {
+        workout: new Howl({ src: [path.join(__dirname, 'sounds/workout.mp3')] }),
+        rest: new Howl({ src: [path.join(__dirname, 'sounds/rest.mp3')] }),
+        transition: new Howl({ src: [path.join(__dirname, 'sounds/transition.mp3')] })
+    };
 });
 
 app.on('window-all-closed', () => {
@@ -58,7 +52,11 @@ app.on('activate', () => {
 });
 
 ipcMain.on('play-sound', (event, type) => {
-    console.log(`Playing sound: ${type}`);
+    if (sounds[type]) {
+        sounds[type].play();
+    } else {
+        console.log(`Sound not found: ${type}`);
+    }
 });
 
 ipcMain.on('save-workout', (event, workoutData) => {
@@ -72,14 +70,6 @@ ipcMain.on('load-workout', (event) => {
 ipcMain.on('timer-status-changed', (event, status) => {
     isTimerRunning = status;
     updateTrayMenu();
-});
-
-mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
-        event.preventDefault();
-        mainWindow.hide();
-    }
-    return false;
 });
 
 app.on('before-quit', () => {
