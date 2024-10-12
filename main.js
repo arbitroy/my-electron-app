@@ -1,20 +1,19 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { Howl } = require('howler');
 
 let mainWindow;
 let sounds = {};
 
-
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1000,
         height: 800,
-        icon: path.join(__dirname, './images/icon.png') ,
+        icon: path.join(__dirname, './images/icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
-            nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: true,
+            nodeIntegration: false
         }
     });
 
@@ -28,7 +27,6 @@ function createWindow() {
         return false;
     });
 }
-
 
 app.whenReady().then(() => {
     createWindow();
@@ -59,17 +57,16 @@ ipcMain.on('play-sound', (event, type) => {
     }
 });
 
+ipcMain.handle('show-error-box', async (event, { title, content }) => {
+    dialog.showErrorBox(title, content);
+});
+
 ipcMain.on('save-workout', (event, workoutData) => {
     console.log('Saving workout:', workoutData);
 });
 
 ipcMain.on('load-workout', (event) => {
     console.log('Loading workout');
-});
-
-ipcMain.on('timer-status-changed', (event, status) => {
-    isTimerRunning = status;
-    updateTrayMenu();
 });
 
 app.on('before-quit', () => {

@@ -1,5 +1,3 @@
-const { ipcRenderer } = require('electron');
-
 // DOM Elements
 const timerDisplay = document.getElementById('timer');
 const progressBar = document.getElementById('progress');
@@ -7,6 +5,7 @@ const currentRoundDisplay = document.getElementById('current-round');
 const totalRoundsDisplay = document.getElementById('total-rounds');
 const timeOnDisplay = document.getElementById('time-on');
 const timeOffDisplay = document.getElementById('time-off');
+const totalWorkoutTimeDisplay = document.getElementById('total-workout-time');
 const startButton = document.getElementById('start-button');
 const resetButton = document.getElementById('reset-button');
 const exerciseInput = document.getElementById('exercise-name');
@@ -29,6 +28,7 @@ let isWorkout = true;
 let currentRound = 0;
 let totalRounds = 8;
 let workoutTime = 20;
+let totalWorkoutTime = "3:50";
 let restTime = 10;
 let exercises = [];
 let currentExerciseIndex = 0;
@@ -52,9 +52,14 @@ function updateProgressBar(currentTime, totalTime) {
 }
 
 // Start timer
-function startTimer() {
+async function startTimer() {
     if (exercises.length === 0) {
-        alert('Please add at least one exercise before starting the timer.');
+        const alertMessage = 'Please add at least one exercise before starting the timer.';
+        await window.electronAPI.showErrorBox('No Exercises', alertMessage);
+        
+        setTimeout(() => {
+            exerciseInput.focus();
+        }, 100);
         return;
     }
 
@@ -133,6 +138,7 @@ function updateRoundDisplay() {
 function updateTimerOptions() {
     timeOffDisplay.textContent = restTime;
     timeOnDisplay.textContent = workoutTime;
+    totalWorkoutTimeDisplay.textContent = totalWorkoutTime;
 }
 
 // Add exercise
@@ -142,8 +148,12 @@ function addExercise() {
         exercises.push(exerciseName);
         exerciseInput.value = '';
         updateExerciseList();
+        exerciseInput.focus(); // Refocus on the input after adding
     } else {
-        alert('Please enter an exercise name.');
+        window.electronAPI.showErrorBox('Invalid Exercise', 'Please enter an exercise name.');
+        setTimeout(() => {
+            exerciseInput.focus();
+        }, 100);
     }
 }
 
@@ -191,7 +201,7 @@ function showCountdown(callback) {
 // Play sound
 function playSound(type) {
     console.log(`Playing ${type} sound`);
-    ipcRenderer.send('play-sound', type);
+    window.electronAPI.send('play-sound', type);
 }
 
 // Save score
@@ -199,11 +209,11 @@ function saveScore() {
     const score = scoreValue.value.trim();
     if (score) {
         console.log(`Saving score: ${score}`);
-        ipcRenderer.send('save-workout', { exercises, score });
+        window.electronAPI.send('save-workout', { exercises, score });
         scoreInput.style.display = 'none';
         scoreValue.value = '';
     } else {
-        alert('Please enter a valid score.');
+        window.electronAPI.showErrorBox('Invalid Score', 'Please enter a valid score.');
     }
 }
 
@@ -212,24 +222,42 @@ startButton.addEventListener('click', startTimer);
 resetButton.addEventListener('click', resetTimer);
 addExerciseButton.addEventListener('click', addExercise);
 saveScoreButton.addEventListener('click', saveScore);
+exerciseInput.addEventListener('blur', function() {
+    // Refocus after a short delay if the input is empty
+    if (this.value.trim() === '' && exercises.length === 0) {
+        setTimeout(() => {
+            this.focus();
+        }, 10);
+    }
+});
+
 
 modeSelect.addEventListener('change', (e) => {
     if (e.target.value === 'tabata') {
         workoutTime = 20;
         restTime = 10;
         totalRounds = 8;
+        totalWorkoutTime = "3:50"
     } else if (e.target.value === 'tabata-this') {
-        workoutTime = 40;
-        restTime = 20;
-        totalRounds = 4;
+        workoutTime = 20;
+        restTime = 10;
+        totalRounds = 40;
+        totalWorkoutTime = "23:50"
     }
-    
     resetTimer();
 });
+
+
+
+
 
 // IPC listeners
 ipcRenderer.on('start-timer', startTimer);
 ipcRenderer.on('reset-timer', resetTimer);
+
+// IPC listeners
+window.electronAPI.on('start-timer', startTimer);
+window.electronAPI.on('reset-timer', resetTimer);
 
 // Initial setup
 updateTimerDisplay(workoutTime);
@@ -237,3 +265,17 @@ updateRoundDisplay();
 updateTimerOptions();
 countdownOverlay.style.display = 'none';  // Hide countdown overlay on start
 scoreInput.style.display = 'none';  // Hide score input on start
+
+// Ensure input is focusable on page load
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        exerciseInput.focus();
+    }, 100);
+});
+
+// Add a global click event listener to refocus on the input field
+document.addEventListener('click', (event) => {
+    if (exercises.length === 0 && event.target !== exerciseInput && event.target !== addExerciseButton) {
+        exerciseInput.focus();
+    }
+});

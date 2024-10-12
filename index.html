@@ -105,7 +105,7 @@
             text-align: center;
         }
         select, input[type="text"], input[type="number"] {
-            width: 100%;
+            width: 95%;
             padding: 10px;
             margin-top: 5px;
             border: 1px solid #bdc3c7;
@@ -214,9 +214,24 @@
                     <label for="sound-before-rest">Sound before rest</label>
                 </div>
                 <div class="checkbox-group">
+                    <input type="checkbox" id="sound-only-on-start">
+                    <label for="sound-only-on-start">Only at the start</label>
+                </div>
+                <div class="checkbox-group">
                     <input type="checkbox" id="sound-all-transitions">
                     <label for="sound-all-transitions">Sound at all transitions</label>
                 </div>
+            </div>
+            <div class="sidebar-section">
+                <h2>Sound options</h2>
+                <label for="sound-options">Sounds:</label>
+                <select id="sound-options">
+                    <option value="fight-bell">Fight bell</option>
+                    <option value="female-voice">Female voice</option>
+                    <option value="english-man">English man</option>
+                    <option value="alpine-ski-clock">Alpine Ski Clock</option>
+                    <option value="off">Off</option>
+                </select>
             </div>
             <div class="sidebar-section" id="score-input" style="display: none;">
                 <h2>Workout Score</h2>
