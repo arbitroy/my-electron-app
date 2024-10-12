@@ -13,9 +13,11 @@ const addExerciseButton = document.getElementById('add-exercise');
 const exerciseList = document.getElementById('exercise-list');
 const currentExerciseDisplay = document.getElementById('current-exercise');
 const modeSelect = document.getElementById('timer-mode');
-const countdownOverlay = document.getElementById('countdown');
+const countdownOverlay = document.getElementById('countdown-overlay');
+const countdownNumber = document.getElementById('countdown-number');
 const soundBeforeRound = document.getElementById('sound-before-round');
 const soundBeforeRest = document.getElementById('sound-before-rest');
+const soundOnlyStart = document.getElementById('sound-only-start');
 const soundAllTransitions = document.getElementById('sound-all-transitions');
 const scoreInput = document.getElementById('score-input');
 const scoreValue = document.getElementById('score');
@@ -35,7 +37,36 @@ let currentExerciseIndex = 0;
 
 
 function playSound(type) {
-    ipcRenderer.send('play-sound', type);
+    window.electronAPI.send('play-sound', type);
+}
+
+function playSoundsForTransition(isWorkout, isStart = false) {
+    if (isStart && soundOnlyStart.checked) {
+        playSound('countdown');
+        setTimeout(() => playSound('fightBell'), 3000); // Play fight bell after 3 seconds
+    } else if (isWorkout && soundBeforeRound.checked) {
+        playSound('fightBell');
+    } else if (!isWorkout && soundBeforeRest.checked) {
+        playSound('countdown');
+    } else if (soundAllTransitions.checked) {
+        playSound(isWorkout ? 'fightBell' : 'countdown');
+    }
+}
+
+function animateCountdown(count, callback) {
+    if (count > 0) {
+        countdownOverlay.style.display = 'flex';
+        countdownNumber.textContent = count;
+        setTimeout(() => animateCountdown(count - 1, callback), 1000);
+    } else {
+        countdownOverlay.style.display = 'none';
+        callback();
+    }
+}
+
+// Show countdown
+function showCountdown(callback) {
+    animateCountdown(3, callback);
 }
 
 // Update timer display
@@ -70,6 +101,7 @@ async function startTimer() {
         isWorkout = true;
         updateRoundDisplay();
         updateCurrentExercise();
+        playSoundsForTransition(true, true); // Play start sounds
         timerInterval = setInterval(timerTick, 1000);
     });
 }
@@ -87,7 +119,7 @@ function timerTick() {
             } else {
                 isWorkout = false;
                 currentTime = restTime;
-                playSound('rest');
+                playSoundsForTransition(false);
             }
         } else {
             isWorkout = true;
@@ -96,12 +128,10 @@ function timerTick() {
             currentExerciseIndex = (currentExerciseIndex + 1) % exercises.length;
             updateRoundDisplay();
             updateCurrentExercise();
-            playSound('workout');
+            playSoundsForTransition(true);
         }
     } else if (currentTime === 3) {
-        if ((isWorkout && soundBeforeRest.checked) || (!isWorkout && soundBeforeRound.checked) || soundAllTransitions.checked) {
-            playSound('transition');
-        }
+        playSoundsForTransition(isWorkout);
     }
 }
 

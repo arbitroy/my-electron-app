@@ -31,9 +31,8 @@ function createWindow() {
 app.whenReady().then(() => {
     createWindow();
     sounds = {
-        workout: new Howl({ src: [path.join(__dirname, 'sounds/workout.mp3')] }),
-        rest: new Howl({ src: [path.join(__dirname, 'sounds/rest.mp3')] }),
-        transition: new Howl({ src: [path.join(__dirname, 'sounds/transition.mp3')] })
+        fightBell: new Howl({ src: [path.join(__dirname, './sounds/fight-bell.mp3')] }),
+        countdown: new Howl({ src: [path.join(__dirname, './sounds/countdown.mp3')] })
     };
 });
 
@@ -48,6 +47,7 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
 
 ipcMain.on('play-sound', (event, type) => {
     if (sounds[type]) {
